@@ -130,7 +130,7 @@ class ResourceSqueezingMiddleware(object):
 
             # process document body
             if response.charset is None:
-                return
+                return response(environ, start_response)
             changed, expires, body = self.process_html(
                 accept_request_data, request.host_url,
                 request.path, response.unicode_body)
