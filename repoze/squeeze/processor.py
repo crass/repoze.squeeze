@@ -183,6 +183,11 @@ class ResourceSqueezingMiddleware(object):
         if not body.strip():
             return False, None, body
 
+        # HACK: Work around bug in lxml where the doctype is discarded
+        #    see: https://bugs.launchpad.net/lxml/+bug/659367
+        m = re.match(r'\s+(<!DOCTYPE [^>]+>)', body, re.I)
+        docstring = m and m.group(1) or ''
+
         tree = lxml.html.fromstring(body)
         changed = False
 
@@ -206,7 +211,7 @@ class ResourceSqueezingMiddleware(object):
             if expires is None or ttl is None or ttl < expires:
                 expires = ttl
                 
-        return changed, expires, XMLSerializer(tree, lxml.html.tostring)
+        return changed, expires, '\n'.join([docstring, XMLSerializer(tree, lxml.html.tostring)])
 
     def update_elements(self, elements, selections, tree, host, uri, cache):
         changed = False
